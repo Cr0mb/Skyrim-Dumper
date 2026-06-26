@@ -17,25 +17,9 @@ Dumper for **The Elder Scrolls V: Skyrim Anniversary Edition** (`SkyrimSE.exe` 1
 | `pe_summary.txt` | | Human-readable module identity |
 | `dumper.log` | | Phase-by-phase consolidated log |
 
-# Singletons 
-
 A singleton generally refers to a single, unique entity distinct from a group or pair, with its specific meaning depending on the context. 
 
 All resolved against a live process slot is read, dereferenced, and the resulting object's vtable is confirmed against the RTTI catalog before being emitted.
-
-| Class | Slot RVA | Vtable RVA |
-|---|---|---|
-| `PlayerCharacter` | `0x3137698` | `0x18AB9C0` |
-| `PlayerCamera` | `0x30FD7F8` | `0x18EF278` |
-| `MenuControls` | `0x31380E8` | `0x18FD550` |
-| `MenuTopicManager` | `0x3137778` | `0x1883FE0` |
-| `BGSStoryTeller` | `0x20FBA78` | `0x186E890` |
-| `Main` | `0x31872C0` | `0x18964B0` |
-| `TES` | `0x20F8930` | `0x177AA60` |
-| `Sky` | `0x31390E0` | `0x17EFE38` |
-| `TESQuest` | `0x20F6010` | `0x17E6A40` |
-| `TESWeather` | `0x20F5BE8` | `0x17B1BE8` |
-| `TESCombatStyle` | `0x20F5718` | `0x17970B8` |
 
 # Key implementation notes
 
