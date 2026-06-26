@@ -2,7 +2,7 @@
 
 Dumper for **The Elder Scrolls V: Skyrim Anniversary Edition** (`SkyrimSE.exe` 1.6.1170.0).
 
-## Dumped:
+# Dumped:
 
 | Output | Count | Description |
 |---|---|---|
@@ -17,7 +17,9 @@ Dumper for **The Elder Scrolls V: Skyrim Anniversary Edition** (`SkyrimSE.exe` 1
 | `pe_summary.txt` | | Human-readable module identity |
 | `dumper.log` | | Phase-by-phase consolidated log |
 
-## Singletons - A singleton generally refers to a single, unique entity distinct from a group or pair, with its specific meaning depending on the context. 
+# Singletons 
+
+A singleton generally refers to a single, unique entity distinct from a group or pair, with its specific meaning depending on the context. 
 
 All resolved against a live process slot is read, dereferenced, and the resulting object's vtable is confirmed against the RTTI catalog before being emitted.
 
@@ -35,14 +37,14 @@ All resolved against a live process slot is read, dereferenced, and the resultin
 | `TESWeather` | `0x20F5BE8` | `0x17B1BE8` |
 | `TESCombatStyle` | `0x20F5718` | `0x17970B8` |
 
-## Key implementation notes
+# Key implementation notes
 
 - **TypeDescriptors are in `.data`**, not `.rdata`. The `type_info` vtable pointer at TD+0 needs to be runtime-initialized, forcing the writable section. Scanners that only check `.rdata` find zero.
 - **Vtable references in x64 code are LEA RIP-relative** (`48 8D 05 disp32`), never 8-byte absolute immediates.
 - **Verification-as-you-go is mandatory**. The "first store after vtable LEA" heuristic gives ~50% false positives. Reading the candidate from live memory and matching the deref'd vtable is the only reliable signal.
 - **SteamStub never gets unpacked**. We work entirely against the runtime-decrypted image in process memory same view the trainer will use.
 
-## Build
+# Build
 
 Requires Visual Studio 2022 Build Tools, CMake 3.20+. C++17, no dependencies.
 
