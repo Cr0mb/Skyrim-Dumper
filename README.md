@@ -1,6 +1,6 @@
 # Skyrim AE Engine Dumper
 
-A live-memory dumper for **The Elder Scrolls V: Skyrim Anniversary Edition** (`SkyrimSE.exe` 1.6.1170.0). Attaches to the running game and produces a complete inventory of every analyzable surface of the binary — without unpacking the SteamStub DRM, without injecting a DLL, without writing to game memory.
+A live-memory dumper for **The Elder Scrolls V: Skyrim Anniversary Edition** (`SkyrimSE.exe` 1.6.1170.0). Attaches to the running game and produces a complete inventory of every analyzable surface of the binary without unpacking the SteamStub DRM, without injecting a DLL, without writing to game memory.
 
 Built to bootstrap external-trainer development: produces verified singleton pointers, full RTTI catalog, function tables, and inheritance graphs that the trainer consumes at startup.
 
@@ -10,18 +10,18 @@ Built to bootstrap external-trainer development: produces verified singleton poi
 |---|---|---|
 | `functions.csv` | 120,080 | Every function in `.text` (RVA range + unwind info from `.pdata`) |
 | `classes.csv` | 8,447 | Every RTTI class + vtable binding |
-| `vtables.csv` | 88,861 | Every vfunc slot — `(class, vtable_rva, idx, vfunc_rva)` |
+| `vtables.csv` | 88,861 | Every vfunc slot `(class, vtable_rva, idx, vfunc_rva)` |
 | `hierarchy.csv` | 8,447 | Inheritance chains via `ClassHierarchyDescriptor` walk |
 | `data_slots.csv` | 71,477 | Every `.data` slot holding a class-object pointer, matched live |
 | `getters.csv` | 83 | `GetSingleton()` accessor pattern hits |
 | `singletons.csv` | 5 | Constructor-anchored verified singletons |
 | `sections.csv` | 9 | PE section table |
-| `pe_summary.txt` | — | Human-readable module identity |
-| `dumper.log` | — | Phase-by-phase consolidated log |
+| `pe_summary.txt` | | Human-readable module identity |
+| `dumper.log` | | Phase-by-phase consolidated log |
 
 ## Verified singletons
 
-All resolved against a live process — slot is read, dereferenced, and the resulting object's vtable is confirmed against the RTTI catalog before being emitted.
+All resolved against a live process slot is read, dereferenced, and the resulting object's vtable is confirmed against the RTTI catalog before being emitted.
 
 | Class | Slot RVA | Vtable RVA |
 |---|---|---|
@@ -41,24 +41,24 @@ All resolved against a live process — slot is read, dereferenced, and the resu
 
 11 phases:
 
-1. **Attach** — `OpenProcess` + `EnumProcessModulesEx` to locate `SkyrimSE.exe`
-2. **PE parse** — read the in-memory headers (no on-disk file-offset math; loader already laid it out)
-3. **Bulk section read** — pull `.text` / `.rdata` / `.data` into local buffers via chunked `ReadProcessMemory`
-4. **`.pdata` walk** — `RUNTIME_FUNCTION` table is the function inventory; Skyrim has no exports so this is the only source
-5. **RTTI walk** — find every `.?AV` / `.?AU` mangled name in `.data` (TypeDescriptors live there on this MSVC build), backtrack to `CompleteObjectLocator`s in `.rdata`, locate vtables via `vtable[-1]`
-6. **Constructor-anchored singleton scan** — find the unambiguous 10-byte `lea rax, [vtable]; mov [rcx], rax` prologue, scan forward for the singleton-store mov
-7. **Live verification** — read each candidate slot from the running process; accept only if the deref'd object's vtable matches one of the class's cataloged vtables
-8. **Getter-pattern scan** — find tiny `GetSingleton()` accessor functions (`mov rax, [rip+disp]; ret` — 8 bytes)
-9. **Brute-force `.data` slot resolver** — for every aligned qword in `.data`, deref once via live `RPM` and check whether the resulting vtable is in the catalog. This catches singletons no other pass finds.
-10. **Vfunc dump** — emit one CSV row per vfunc for every vtable
-11. **Hierarchy walk** — parse `ClassHierarchyDescriptor` → `BaseClassDescriptor` arrays to recover full inheritance chains
+1. **Attach** `OpenProcess` + `EnumProcessModulesEx` to locate `SkyrimSE.exe`
+2. **PE parse** read the in-memory headers (no on-disk file-offset math; loader already laid it out)
+3. **Bulk section read** pull `.text` / `.rdata` / `.data` into local buffers via chunked `ReadProcessMemory`
+4. **`.pdata` walk** `RUNTIME_FUNCTION` table is the function inventory; Skyrim has no exports so this is the only source
+5. **RTTI walk** find every `.?AV` / `.?AU` mangled name in `.data` (TypeDescriptors live there on this MSVC build), backtrack to `CompleteObjectLocator`s in `.rdata`, locate vtables via `vtable[-1]`
+6. **Constructor-anchored singleton scan** find the unambiguous 10-byte `lea rax, [vtable]; mov [rcx], rax` prologue, scan forward for the singleton-store mov
+7. **Live verification** read each candidate slot from the running process; accept only if the deref'd object's vtable matches one of the class's cataloged vtables
+8. **Getter-pattern scan** find tiny `GetSingleton()` accessor functions (`mov rax, [rip+disp]; ret` 8 bytes)
+9. **Brute-force `.data` slot resolver** for every aligned qword in `.data`, deref once via live `RPM` and check whether the resulting vtable is in the catalog. This catches singletons no other pass finds.
+10. **Vfunc dump** emit one CSV row per vfunc for every vtable
+11. **Hierarchy walk** parse `ClassHierarchyDescriptor` → `BaseClassDescriptor` arrays to recover full inheritance chains
 
 ## Key implementation notes
 
 - **TypeDescriptors are in `.data`**, not `.rdata`. The `type_info` vtable pointer at TD+0 needs to be runtime-initialized, forcing the writable section. Scanners that only check `.rdata` find zero.
 - **Vtable references in x64 code are LEA RIP-relative** (`48 8D 05 disp32`), never 8-byte absolute immediates.
 - **Verification-as-you-go is mandatory**. The "first store after vtable LEA" heuristic gives ~50% false positives. Reading the candidate from live memory and matching the deref'd vtable is the only reliable signal.
-- **SteamStub never gets unpacked**. We work entirely against the runtime-decrypted image in process memory — same view the trainer will use.
+- **SteamStub never gets unpacked**. We work entirely against the runtime-decrypted image in process memory same view the trainer will use.
 
 ## Build
 
@@ -72,7 +72,7 @@ Produces `build\Release\GHaxSkyrimDumper.exe`.
 
 ## Use
 
-Launch Skyrim and load into a save (some singletons aren't constructed until a save is loaded — `Sky` requires an exterior cell). Then:
+Launch Skyrim and load into a save (some singletons aren't constructed until a save is loaded `Sky` requires an exterior cell). Then:
 
 ```cmd
 build\Release\GHaxSkyrimDumper.exe
@@ -115,4 +115,4 @@ dumper/
 
 ## Scope
 
-Single-player Skyrim, offline use only. The dump enables trainer development for memory-only feature implementation (god mode, ESP, free-cam, time scrub, etc.). No anti-cheat involved — Skyrim ships none, and the modding ecosystem already does far more invasive things via SKSE.
+Single-player Skyrim, offline use only. The dump enables trainer development for memory-only feature implementation (god mode, ESP, free-cam, time scrub, etc.). No anti-cheat involved Skyrim ships none, and the modding ecosystem already does far more invasive things via SKSE.
