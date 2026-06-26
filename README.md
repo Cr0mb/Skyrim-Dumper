@@ -41,7 +41,7 @@ All resolved against a live process slot is read, dereferenced, and the resultin
 
 - **TypeDescriptors are in `.data`**, not `.rdata`. The `type_info` vtable pointer at TD+0 needs to be runtime-initialized, forcing the writable section. Scanners that only check `.rdata` find zero.
 - **Vtable references in x64 code are LEA RIP-relative** (`48 8D 05 disp32`), never 8-byte absolute immediates.
-- **Verification-as-you-go is mandatory**. The "first store after vtable LEA" heuristic gives ~50% false positives. Reading the candidate from live memory and matching the deref'd vtable is the only reliable signal.
+- **The "first store after vtable LEA" heuristic gives ~50% false positives.** Reading the candidate from live memory and matching the deref'd vtable is the only reliable signal.
 - **SteamStub never gets unpacked**. We work entirely against the runtime-decrypted image in process memory same view the trainer will use.
 
 # Build
